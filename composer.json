@@ -1,0 +1,19 @@
+{
+    "name": "cumulus/cumulus",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Cumulus\\Cumulus\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kevin Ullyott",
+            "email": "ullyott.kevin@gmail.com"
+        }
+    ],
+    "require": {
+        "laravel/vapor-cli": "^1.34",
+        "cloudflare/sdk": "^1.3"
+    }
+}

@@ -1,0 +1,30 @@
+#!/usr/bin/env php
+<?php
+
+use Illuminate\Container\Container;
+use Laravel\VaporCli\Application;
+use Cumulus\Cumulus\Commands;
+
+/**
+ * Require the autoloader.
+ */
+if (file_exists(__DIR__.'/../../autoload.php')) {
+    require __DIR__.'/../../autoload.php';
+} else {
+    require __DIR__.'/vendor/autoload.php';
+}
+
+/**
+ * Create the container instance.
+ */
+Container::setInstance($container = new Container());
+
+/**
+ * Start the console application.
+ */
+$app = new Application('Cumulus', '0.1.0');
+
+// Authentication...
+$app->add(new Commands\CloudflareLoginCommand());
+
+$app->run();
