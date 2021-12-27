@@ -48,7 +48,7 @@ class RecordsImportCommand extends Command
             VaporHelpers::abort('Unable to find a zone with that name / ID in Vapor.');
         }
 
-        $records = collect($this->vapor->records($zoneId))->map(function ($record) {
+        $VaporRecords = collect($this->vapor->records($zoneId))->map(function ($record) {
             return [
                 'type' => $record['alias'] ? 'CNAME' : $record['type'],
                 'name' => $record['name'],
@@ -67,8 +67,21 @@ class RecordsImportCommand extends Command
             VaporHelpers::abort('Unable to find a zone with that name / ID in Cloudflare.');
         }
 
-        $cloudflareRecords = $dns->listRecords($zoneId);
+        $cloudflareRecords = collect($dns->listRecords($zoneId)->result);
 
-        var_dump($cloudflareRecords);
+        //var_dump($cloudflareRecords);
+
+        $VaporRecords->each(function ($vaporRecord) use ($cloudflareRecords) {
+            $matches = $cloudflareRecords->filter(function ($cloudflareRecord) use ($vaporRecord) {
+                return $cloudflareRecord->name === $vaporRecord['name'] && $cloudflareRecord->type === $vaporRecord['type'];
+            });
+
+            if ($matches->isEmpty()) {
+                Helpers::info('No records found');
+                Helpers::info($vaporRecord['name']);
+
+                // TODO: Add logic to create records
+            }
+        });
     }
 }
