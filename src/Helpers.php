@@ -2,6 +2,7 @@
 
 namespace Cumulus\Cumulus;
 
+use Exception;
 use Laravel\VaporCli\Config;
 
 class Helpers extends \Laravel\VaporCli\Helpers
@@ -11,7 +12,7 @@ class Helpers extends \Laravel\VaporCli\Helpers
      *
      * @param  string|array  $key
      * @param  mixed  $value
-     * @return mixed
+     * @return mixed|void
      */
     public static function config($key, $value = null)
     {
@@ -24,5 +25,18 @@ class Helpers extends \Laravel\VaporCli\Helpers
         }
 
         return Config::get($key, $value);
+    }
+
+    /**
+     * Ensure that the user has authenticated with Cloudflare.
+     *
+     * @return void
+     * @throws Exception
+     */
+    public static function ensureCloudFlareCredentialsAreAvailable()
+    {
+        if (! static::config('email') && ! static::config('apiKey')) {
+            throw new Exception("Please authenticate using the 'cloudflare:login' command before proceeding.");
+        }
     }
 }
