@@ -4,7 +4,6 @@ namespace Cumulus\Cumulus\Commands;
 
 use Exception;
 use Cumulus\Cumulus\Helpers;
-use Cloudflare\API\Endpoints\DNS;
 use Illuminate\Support\Collection;
 use Laravel\VaporCli\Commands\Command;
 use Laravel\VaporCli\Helpers as VaporHelpers;
