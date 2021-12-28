@@ -46,14 +46,16 @@ class RecordsImportCommand extends Command
 
         $key = new APIKey(Config::get('email'), Config::get('apiKey'));
         $adapter = new Guzzle($key);
+
         $zone = new Zones($adapter);
-        $dns = new DNS($adapter);
 
         try {
             $cloudflareZoneId = $zone->getZoneId($this->argument('zone'));
         } catch (Exception $e) {
             VaporHelpers::abort('Unable to find a zone with that name / ID in Cloudflare.');
         }
+
+        $dns = new DNS($adapter);
 
         $cloudflareRecords = collect($dns->listRecords($cloudflareZoneId)->result);
 
