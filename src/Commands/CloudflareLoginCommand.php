@@ -6,9 +6,7 @@ use Exception;
 use Cumulus\Cumulus\Helpers;
 use Cloudflare\API\Auth\APIToken;
 use Laravel\VaporCli\Helpers as VaporHelpers;
-use Cloudflare\API\Auth\APIKey;
 use Cloudflare\API\Adapter\Guzzle;
-use Cloudflare\API\Endpoints\User;
 use Laravel\VaporCli\Commands\Command;
 use Cumulus\Cumulus\CloudflareEndpoints\UserApiToken;
 

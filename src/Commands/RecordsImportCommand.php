@@ -5,7 +5,6 @@ namespace Cumulus\Cumulus\Commands;
 use Exception;
 use Cumulus\Cumulus\Config;
 use Cumulus\Cumulus\Helpers;
-use Cloudflare\API\Auth\APIKey;
 use Cloudflare\API\Endpoints\DNS;
 use Cloudflare\API\Auth\APIToken;
 use Cloudflare\API\Adapter\Guzzle;

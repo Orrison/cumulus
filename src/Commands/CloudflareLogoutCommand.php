@@ -5,9 +5,6 @@ namespace Cumulus\Cumulus\Commands;
 use Exception;
 use Cumulus\Cumulus\Helpers;
 use Laravel\VaporCli\Helpers as VaporHelpers;
-use Cloudflare\API\Auth\APIKey;
-use Cloudflare\API\Adapter\Guzzle;
-use Cloudflare\API\Endpoints\User;
 use Laravel\VaporCli\Commands\Command;
 
 class CloudflareLogoutCommand extends Command
