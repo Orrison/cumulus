@@ -3,7 +3,8 @@
 namespace Cumulus\Cumulus\Commands;
 
 use Exception;
-use Laravel\VaporCli\Helpers;
+use Cumulus\Cumulus\Helpers;
+use Laravel\VaporCli\Helpers as VaporHelpers;
 use Cloudflare\API\Auth\APIKey;
 use Cloudflare\API\Adapter\Guzzle;
 use Cloudflare\API\Endpoints\User;
@@ -31,8 +32,8 @@ class CloudflareLoginCommand extends Command
      */
     public function handle()
     {
-        $email = Helpers::ask('Email Address');
-        $apiKey = Helpers::secret('API Key');
+        $email = VaporHelpers::ask('Email Address');
+        $apiKey = VaporHelpers::secret('API Key');
 
         $key = new APIKey($email, $apiKey);
         $adapter = new Guzzle($key);
@@ -42,7 +43,7 @@ class CloudflareLoginCommand extends Command
             $userId = $user->getUserID();
         } catch (Exception $e) {
             if ($e->getMessage() === 'Invalid request headers') {
-                Helpers::abort(
+                VaporHelpers::abort(
                     'Invalid credentials'
                 );
             }
@@ -53,13 +54,13 @@ class CloudflareLoginCommand extends Command
             throw new Exception('Something went wrong, please try again');
         }
 
-        \Cumulus\Cumulus\Helpers::config(
+        Helpers::config(
             [
                 'email' => $email,
                 'apiKey' => $apiKey,
             ]
         );
 
-        Helpers::info('Authenticated successfully.'.PHP_EOL);
+        VaporHelpers::info('Authenticated successfully.'.PHP_EOL);
     }
 }
