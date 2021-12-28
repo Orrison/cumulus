@@ -4,6 +4,7 @@ namespace Cumulus\Cumulus\Commands;
 
 use Exception;
 use Cumulus\Cumulus\Helpers;
+use Cloudflare\API\Endpoints\DNS;
 use Illuminate\Support\Collection;
 use Laravel\VaporCli\Commands\Command;
 use Laravel\VaporCli\Helpers as VaporHelpers;
@@ -16,8 +17,10 @@ class RecordsImportCommand extends Command
     protected $zone;
     protected $proxy;
     protected $dryRun;
+    protected $recordsToAdd;
     protected $totalAddedRecords;
     protected $recordsToUpdate;
+    protected $totalUpdatedRecords;
     protected $cloudflareZoneId;
     protected $cloudflareRecords;
 
@@ -51,7 +54,7 @@ class RecordsImportCommand extends Command
 
                 if ($matches->isEmpty()) {
                     if ($this->dryRun) {
-                        $this->recordsToUpdate[] = [
+                        $this->recordsToAdd[] = [
                             'name' => $vaporRecord['name'],
                             'type' => $vaporRecord['type'],
                             'value' => $vaporRecord['value'],
@@ -60,17 +63,36 @@ class RecordsImportCommand extends Command
                     } else {
                         $this->addRecord($vaporRecord['type'], $vaporRecord['name'], $vaporRecord['value']);
                     }
+                } elseif ($matches->first()->content !== $vaporRecord['value']) {
+                    if ($this->dryRun) {
+                        $this->recordsToUpdate[] = [
+                            'name' => $vaporRecord['name'],
+                            'type' => $vaporRecord['type'],
+                            'value' => $vaporRecord['value'],
+                        ];
+                        $this->totalUpdatedRecords++;
+                    } else {
+                        $this->updateRecord($matches->first(), $vaporRecord['value']);
+                    }
                 }
             }
         );
 
         if ($this->dryRun) {
             if ($this->totalAddedRecords > 0) {
-                VaporHelpers::info("Records required to be added/updated:");
+                VaporHelpers::info("Records required to be added:");
+
+                $this->table(['Type', 'Name', 'Value'], $this->recordsToAdd);
+            } else {
+                VaporHelpers::info("No records need added to Cloudflare. All records are already imported.");
+            }
+
+            if ($this->totalUpdatedRecords > 0) {
+                VaporHelpers::warn("Records required to be updated:");
 
                 $this->table(['Type', 'Name', 'Value'], $this->recordsToUpdate);
             } else {
-                VaporHelpers::info("No records need added to Cloudflare. All records are already imported.");
+                VaporHelpers::info("No records need updated in Cloudflare. All records are already correct.");
             }
 
             return;
@@ -80,6 +102,12 @@ class RecordsImportCommand extends Command
             VaporHelpers::info("Added {$this->totalAddedRecords} records to Cloudflare.");
         } else {
             VaporHelpers::info("No records were added to Cloudflare. All records are already imported.");
+        }
+
+        if ($this->totalUpdatedRecords > 0) {
+            VaporHelpers::info("Updated {$this->totalUpdatedRecords} records in Cloudflare.");
+        } else {
+            VaporHelpers::info("No records need updated in Cloudflare. All records are already correct.");
         }
     }
 
@@ -133,6 +161,28 @@ class RecordsImportCommand extends Command
                     "Unable to create {$type} record in Cloudflare with name {$name}. Response: {$e->getMessage()}"
                 );
             }
+        }
+    }
+
+    protected function updateRecord($record, $value)
+    {
+        try {
+            $this->dns->updateRecordDetails(
+                $this->cloudflareZoneId,
+                $record->id,
+                [
+                    'type' => $record->type,
+                    'name' => $record->name,
+                    'content' => $value,
+                    'ttl' => 0
+                ]
+            );
+            $this->totalUpdatedRecords++;
+            Helpers::info("Updated {$record->type} record {$record->name}");
+        } catch (Exception $e) {
+            VaporHelpers::danger(
+                "Unable to update record in Cloudflare. Response: {$e->getMessage()}"
+            );
         }
     }
 
