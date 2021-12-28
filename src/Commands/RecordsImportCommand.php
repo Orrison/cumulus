@@ -47,27 +47,37 @@ class RecordsImportCommand extends Command
 
         $proxy = !$this->option('no-proxy');
 
-        $addedRecords = 0;
+        $dryRun = $this->option('dry-run');
+
+        $totalAddedRecords = 0;
+
+        if ($dryRun) {
+            $recordsToUpdate = [];
+        }
 
         $vaporRecords->each(
-            function ($vaporRecord) use ($cloudflareZoneId, $cloudflareRecords, $dns, $proxy, &$addedRecords) {
+            function ($vaporRecord) use (
+                $cloudflareZoneId,
+                $cloudflareRecords,
+                $dns,
+                $proxy,
+                $dryRun,
+                &$totalAddedRecords,
+                &$recordsToUpdate
+            ) {
                 $matches = $cloudflareRecords->filter(function ($cloudflareRecord) use ($vaporRecord) {
                     return $cloudflareRecord->name === $vaporRecord['name'] && $cloudflareRecord->type === $vaporRecord['type'];
                 });
 
                 if ($matches->isEmpty()) {
-                    try {
-                        $dns->addRecord(
-                            $cloudflareZoneId,
-                            $vaporRecord['type'],
-                            $vaporRecord['name'],
-                            $vaporRecord['value'],
-                            0,
-                            $vaporRecord['type'] !== 'TXT' ? $proxy : false
-                        );
-                        $addedRecords++;
-                        Helpers::info("Added {$vaporRecord['type']} record {$vaporRecord['name']}");
-                    } catch (Exception $e) {
+                    if ($dryRun) {
+                        $recordsToUpdate[] = [
+                            'name' => $vaporRecord['name'],
+                            'type' => $vaporRecord['type'],
+                            'value' => $vaporRecord['value'],
+                        ];
+                        $totalAddedRecords++;
+                    } else {
                         try {
                             $dns->addRecord(
                                 $cloudflareZoneId,
@@ -75,22 +85,47 @@ class RecordsImportCommand extends Command
                                 $vaporRecord['name'],
                                 $vaporRecord['value'],
                                 0,
-                                false
+                                $vaporRecord['type'] !== 'TXT' ? $proxy : false
                             );
-                            $addedRecords++;
+                            $totalAddedRecords++;
                             Helpers::info("Added {$vaporRecord['type']} record {$vaporRecord['name']}");
                         } catch (Exception $e) {
-                            VaporHelpers::danger(
-                                "Unable to create {$vaporRecord['type']} record in Cloudflare with name {$vaporRecord['name']}. Response: {$e->getMessage()}"
-                            );
+                            try {
+                                $dns->addRecord(
+                                    $cloudflareZoneId,
+                                    $vaporRecord['type'],
+                                    $vaporRecord['name'],
+                                    $vaporRecord['value'],
+                                    0,
+                                    false
+                                );
+                                $totalAddedRecords++;
+                                Helpers::info("Added {$vaporRecord['type']} record {$vaporRecord['name']}");
+                            } catch (Exception $e) {
+                                VaporHelpers::danger(
+                                    "Unable to create {$vaporRecord['type']} record in Cloudflare with name {$vaporRecord['name']}. Response: {$e->getMessage()}"
+                                );
+                            }
                         }
                     }
                 }
             }
         );
 
-        if ($addedRecords > 0) {
-            VaporHelpers::info("Added {$addedRecords} records to Cloudflare.");
+        if ($dryRun) {
+            if ($totalAddedRecords > 0) {
+                VaporHelpers::info("Records required to be added/updated:");
+
+                $this->table(['Type', 'Name', 'Value'], $recordsToUpdate);
+            } else {
+                VaporHelpers::info("No records need added to Cloudflare. All records are already imported.");
+            }
+
+            return;
+        }
+
+        if ($totalAddedRecords > 0) {
+            VaporHelpers::info("Added {$totalAddedRecords} records to Cloudflare.");
         } else {
             VaporHelpers::info("No records were added to Cloudflare. All records are already imported.");
         }
@@ -126,6 +161,7 @@ class RecordsImportCommand extends Command
             ->setName('records:import')
             ->addArgument('zone', InputArgument::REQUIRED, 'The zone name / ID')
             ->addOption('no-proxy', null, InputOption::VALUE_NONE, 'Do not proxy added records')
+            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'List records to be added without adding them')
             ->setDescription('Import any missing records from Vapor into the Cloudflare zone.');
     }
 }
