@@ -4,11 +4,13 @@ namespace Cumulus\Cumulus\Commands;
 
 use Exception;
 use Cumulus\Cumulus\Helpers;
+use Cloudflare\API\Auth\APIToken;
 use Laravel\VaporCli\Helpers as VaporHelpers;
 use Cloudflare\API\Auth\APIKey;
 use Cloudflare\API\Adapter\Guzzle;
 use Cloudflare\API\Endpoints\User;
 use Laravel\VaporCli\Commands\Command;
+use Cumulus\Cumulus\CloudflareEndpoints\UserApiToken;
 
 class CloudflareLoginCommand extends Command
 {
@@ -32,15 +34,19 @@ class CloudflareLoginCommand extends Command
      */
     public function handle()
     {
-        $email = VaporHelpers::ask('Email Address');
-        $apiKey = VaporHelpers::secret('API Key');
+        $apiToken = VaporHelpers::secret('API Token');
 
-        $key = new APIKey($email, $apiKey);
+        $key = new APIToken($apiToken);
         $adapter = new Guzzle($key);
-        $user = new User($adapter);
+
+        $userApiTokens = new UserApiToken($adapter);
 
         try {
-            $userId = $user->getUserID();
+            $response = $userApiTokens->verifyToken();
+
+            if ($response->status == 'success') {
+                throw new Exception('Invalid API Token');
+            }
         } catch (Exception $e) {
             if ($e->getMessage() === 'Invalid request headers') {
                 VaporHelpers::abort(
@@ -50,14 +56,9 @@ class CloudflareLoginCommand extends Command
             throw $e;
         }
 
-        if (gettype($userId) !== 'string') {
-            throw new Exception('Something went wrong, please try again');
-        }
-
         Helpers::config(
             [
-                'email' => $email,
-                'apiKey' => $apiKey,
+                'apiToken' => $apiToken,
             ]
         );
 
