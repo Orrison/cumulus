@@ -52,6 +52,7 @@ class RecordsImportCommand extends Command
                 });
 
                 if ($matches->isEmpty()) {
+                    // Record does not exist in Cloudflare, add it
                     if ($this->dryRun) {
                         $this->recordsToAdd[] = [
                             'name' => $vaporRecord['name'],
@@ -63,6 +64,7 @@ class RecordsImportCommand extends Command
                         $this->addRecord($vaporRecord['type'], $vaporRecord['name'], $vaporRecord['value']);
                     }
                 } elseif ($matches->first()->content !== $vaporRecord['value']) {
+                    // Record exists in Cloudflare, but the value is different, update it
                     if ($this->dryRun) {
                         $this->recordsToUpdate[] = [
                             'name' => $vaporRecord['name'],
