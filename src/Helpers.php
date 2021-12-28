@@ -3,7 +3,6 @@
 namespace Cumulus\Cumulus;
 
 use Exception;
-use Laravel\VaporCli\Config;
 
 class Helpers extends \Laravel\VaporCli\Helpers
 {
@@ -35,7 +34,7 @@ class Helpers extends \Laravel\VaporCli\Helpers
      */
     public static function ensureCloudFlareCredentialsAreAvailable()
     {
-        if (! static::config('email') && ! static::config('apiKey')) {
+        if (! static::config('apiToken')) {
             throw new Exception("Please authenticate using the 'cloudflare:login' command before proceeding.");
         }
     }

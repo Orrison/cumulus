@@ -34,8 +34,7 @@ class CloudflareLogoutCommand extends Command
     {
         Helpers::config(
             [
-                'email' => null,
-                'apiKey' => null,
+                'apiToken' => null,
             ]
         );
 

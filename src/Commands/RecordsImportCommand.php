@@ -7,6 +7,7 @@ use Cumulus\Cumulus\Config;
 use Cumulus\Cumulus\Helpers;
 use Cloudflare\API\Auth\APIKey;
 use Cloudflare\API\Endpoints\DNS;
+use Cloudflare\API\Auth\APIToken;
 use Cloudflare\API\Adapter\Guzzle;
 use Illuminate\Support\Collection;
 use Cloudflare\API\Endpoints\Zones;
@@ -44,7 +45,7 @@ class RecordsImportCommand extends Command
 
         $vaporRecords = $this->getVaporRecords();
 
-        $key = new APIKey(Config::get('email'), Config::get('apiKey'));
+        $key = new APIToken(Config::get('apiToken'));
         $adapter = new Guzzle($key);
 
         $zone = new Zones($adapter);
