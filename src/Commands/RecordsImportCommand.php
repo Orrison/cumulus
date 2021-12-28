@@ -3,12 +3,12 @@
 namespace Cumulus\Cumulus\Commands;
 
 use Exception;
-use Illuminate\Support\Str;
 use Cumulus\Cumulus\Config;
 use Cumulus\Cumulus\Helpers;
 use Cloudflare\API\Auth\APIKey;
 use Cloudflare\API\Endpoints\DNS;
 use Cloudflare\API\Adapter\Guzzle;
+use Illuminate\Support\Collection;
 use Cloudflare\API\Endpoints\Zones;
 use Laravel\VaporCli\Helpers as VaporHelpers;
 use Laravel\VaporCli\Commands\Command;
@@ -42,21 +42,7 @@ class RecordsImportCommand extends Command
         VaporHelpers::ensure_api_token_is_available();
         Helpers::ensureCloudFlareCredentialsAreAvailable();
 
-        if (! is_numeric($vaporZoneId = $this->argument('zone'))) {
-            $vaporZoneId = $this->findIdByName($this->vapor->zones(), $vaporZoneId, 'zone');
-        }
-
-        if (is_null($vaporZoneId)) {
-            VaporHelpers::abort('Unable to find a zone with that name / ID in Vapor.');
-        }
-
-        $VaporRecords = collect($this->vapor->records($vaporZoneId))->map(function ($record) {
-            return [
-                'type' => $record['alias'] ? 'CNAME' : $record['type'],
-                'name' => $record['name'],
-                'value' => $record['value'],
-            ];
-        });
+        $vaporRecords = $this->getVaporRecords();
 
         $key = new APIKey(Config::get('email'), Config::get('apiKey'));
         $adapter = new Guzzle($key);
@@ -75,7 +61,7 @@ class RecordsImportCommand extends Command
 
         $addedRecords = 0;
 
-        $VaporRecords->each(function ($vaporRecord) use ($cloudflareZoneId, $cloudflareRecords, $dns, $proxy, &$addedRecords) {
+        $vaporRecords->each(function ($vaporRecord) use ($cloudflareZoneId, $cloudflareRecords, $dns, $proxy, &$addedRecords) {
             $matches = $cloudflareRecords->filter(function ($cloudflareRecord) use ($vaporRecord) {
                 return $cloudflareRecord->name === $vaporRecord['name'] && $cloudflareRecord->type === $vaporRecord['type'];
             });
@@ -116,5 +102,24 @@ class RecordsImportCommand extends Command
         } else {
             VaporHelpers::info("No records were added to Cloudflare. All records are already imported.");
         }
+    }
+
+    protected function getVaporRecords(): Collection
+    {
+        if (! is_numeric($vaporZoneId = $this->argument('zone'))) {
+            $vaporZoneId = $this->findIdByName($this->vapor->zones(), $vaporZoneId, 'zone');
+        }
+
+        if (is_null($vaporZoneId)) {
+            VaporHelpers::abort('Unable to find a zone with that name / ID in Vapor.');
+        }
+
+        return collect($this->vapor->records($vaporZoneId))->map(function ($record) {
+            return [
+                'type' => $record['alias'] ? 'CNAME' : $record['type'],
+                'name' => $record['name'],
+                'value' => $record['value'],
+            ];
+        });
     }
 }
