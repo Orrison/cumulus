@@ -3,13 +3,8 @@
 namespace Cumulus\Cumulus\Commands;
 
 use Exception;
-use Cumulus\Cumulus\Config;
 use Cumulus\Cumulus\Helpers;
-use Cloudflare\API\Endpoints\DNS;
-use Cloudflare\API\Auth\APIToken;
-use Cloudflare\API\Adapter\Guzzle;
 use Illuminate\Support\Collection;
-use Cloudflare\API\Endpoints\Zones;
 use Laravel\VaporCli\Commands\Command;
 use Laravel\VaporCli\Helpers as VaporHelpers;
 use Symfony\Component\Console\Input\InputOption;
@@ -17,6 +12,15 @@ use Symfony\Component\Console\Input\InputArgument;
 
 class RecordsImportCommand extends Command
 {
+    protected $dns;
+    protected $zone;
+    protected $proxy;
+    protected $dryRun;
+    protected $totalAddedRecords;
+    protected $recordsToUpdate;
+    protected $cloudflareZoneId;
+    protected $cloudflareRecords;
+
     /**
      * Execute the command.
      *
@@ -25,98 +29,46 @@ class RecordsImportCommand extends Command
      */
     public function handle()
     {
+        $this->proxy = !$this->option('no-proxy');
+        $this->dryRun = $this->option('dry-run');
+
         VaporHelpers::ensure_api_token_is_available();
         Helpers::ensureCloudFlareCredentialsAreAvailable();
 
         $vaporRecords = $this->getVaporRecords();
 
-        $key = new APIToken(Config::get('apiToken'));
-        $adapter = new Guzzle($key);
+        $this->cloudflareZoneId = Helpers::getCloudflareZoneId($this->argument('zone'));
 
-        $zone = new Zones($adapter);
+        $this->dns = Helpers::getCloudflareDnsApi();
 
-        try {
-            $cloudflareZoneId = $zone->getZoneId($this->argument('zone'));
-        } catch (Exception $e) {
-            VaporHelpers::abort('Unable to find a zone with that name / ID in Cloudflare.');
-        }
-
-        $dns = new DNS($adapter);
-
-        $cloudflareRecords = collect($dns->listRecords($cloudflareZoneId)->result);
-
-        $proxy = !$this->option('no-proxy');
-
-        $dryRun = $this->option('dry-run');
-
-        $totalAddedRecords = 0;
-
-        if ($dryRun) {
-            $recordsToUpdate = [];
-        }
+        $this->cloudflareRecords = collect($this->dns->listRecords($this->cloudflareZoneId)->result);
 
         $vaporRecords->each(
-            function ($vaporRecord) use (
-                $cloudflareZoneId,
-                $cloudflareRecords,
-                $dns,
-                $proxy,
-                $dryRun,
-                &$totalAddedRecords,
-                &$recordsToUpdate
-            ) {
-                $matches = $cloudflareRecords->filter(function ($cloudflareRecord) use ($vaporRecord) {
+            function ($vaporRecord) {
+                $matches = $this->cloudflareRecords->filter(function ($cloudflareRecord) use ($vaporRecord) {
                     return $cloudflareRecord->name === $vaporRecord['name'] && $cloudflareRecord->type === $vaporRecord['type'];
                 });
 
                 if ($matches->isEmpty()) {
-                    if ($dryRun) {
-                        $recordsToUpdate[] = [
+                    if ($this->dryRun) {
+                        $this->recordsToUpdate[] = [
                             'name' => $vaporRecord['name'],
                             'type' => $vaporRecord['type'],
                             'value' => $vaporRecord['value'],
                         ];
-                        $totalAddedRecords++;
+                        $this->totalAddedRecords++;
                     } else {
-                        try {
-                            $dns->addRecord(
-                                $cloudflareZoneId,
-                                $vaporRecord['type'],
-                                $vaporRecord['name'],
-                                $vaporRecord['value'],
-                                0,
-                                $vaporRecord['type'] !== 'TXT' ? $proxy : false
-                            );
-                            $totalAddedRecords++;
-                            Helpers::info("Added {$vaporRecord['type']} record {$vaporRecord['name']}");
-                        } catch (Exception $e) {
-                            try {
-                                $dns->addRecord(
-                                    $cloudflareZoneId,
-                                    $vaporRecord['type'],
-                                    $vaporRecord['name'],
-                                    $vaporRecord['value'],
-                                    0,
-                                    false
-                                );
-                                $totalAddedRecords++;
-                                Helpers::info("Added {$vaporRecord['type']} record {$vaporRecord['name']}");
-                            } catch (Exception $e) {
-                                VaporHelpers::danger(
-                                    "Unable to create {$vaporRecord['type']} record in Cloudflare with name {$vaporRecord['name']}. Response: {$e->getMessage()}"
-                                );
-                            }
-                        }
+                        $this->addRecord($vaporRecord['type'], $vaporRecord['name'], $vaporRecord['value']);
                     }
                 }
             }
         );
 
-        if ($dryRun) {
-            if ($totalAddedRecords > 0) {
+        if ($this->dryRun) {
+            if ($this->totalAddedRecords > 0) {
                 VaporHelpers::info("Records required to be added/updated:");
 
-                $this->table(['Type', 'Name', 'Value'], $recordsToUpdate);
+                $this->table(['Type', 'Name', 'Value'], $this->recordsToUpdate);
             } else {
                 VaporHelpers::info("No records need added to Cloudflare. All records are already imported.");
             }
@@ -124,8 +76,8 @@ class RecordsImportCommand extends Command
             return;
         }
 
-        if ($totalAddedRecords > 0) {
-            VaporHelpers::info("Added {$totalAddedRecords} records to Cloudflare.");
+        if ($this->totalAddedRecords > 0) {
+            VaporHelpers::info("Added {$this->totalAddedRecords} records to Cloudflare.");
         } else {
             VaporHelpers::info("No records were added to Cloudflare. All records are already imported.");
         }
@@ -148,6 +100,40 @@ class RecordsImportCommand extends Command
                 'value' => $record['value'],
             ];
         });
+    }
+
+    protected function addRecord($type, $name, $value): void
+    {
+        try {
+            $this->dns->addRecord(
+                $this->cloudflareZoneId,
+                $type,
+                $name,
+                $value,
+                0,
+                $type !== 'TXT' ? $this->proxy : false
+            );
+            $this->totalAddedRecords++;
+            Helpers::info("Added {$type} record {$name}");
+        } catch (Exception $e) {
+            // If the record fails to be added it could be because proxy is not allowed for this record type, attempt to add it without proxy
+            try {
+                $this->dns->addRecord(
+                    $this->cloudflareZoneId,
+                    $type,
+                    $name,
+                    $value,
+                    0,
+                    false
+                );
+                $this->totalAddedRecords++;
+                Helpers::info("Added {$type} record {$name}");
+            } catch (Exception $e) {
+                VaporHelpers::danger(
+                    "Unable to create {$type} record in Cloudflare with name {$name}. Response: {$e->getMessage()}"
+                );
+            }
+        }
     }
 
     /**
