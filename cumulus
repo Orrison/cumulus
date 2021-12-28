@@ -1,17 +1,17 @@
 #!/usr/bin/env php
 <?php
 
-use Illuminate\Container\Container;
-use Laravel\VaporCli\Application;
 use Cumulus\Cumulus\Commands;
+use Laravel\VaporCli\Application;
+use Illuminate\Container\Container;
 
 /**
  * Require the autoloader.
  */
-if (file_exists(__DIR__.'/../../autoload.php')) {
-    require __DIR__.'/../../autoload.php';
+if (file_exists(__DIR__ . '/../../autoload.php')) {
+    require __DIR__ . '/../../autoload.php';
 } else {
-    require __DIR__.'/vendor/autoload.php';
+    require __DIR__ . '/vendor/autoload.php';
 }
 
 /**

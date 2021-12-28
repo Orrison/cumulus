@@ -5,25 +5,13 @@ namespace Cumulus\Cumulus\Commands;
 use Exception;
 use Cumulus\Cumulus\Helpers;
 use Cloudflare\API\Auth\APIToken;
-use Laravel\VaporCli\Helpers as VaporHelpers;
 use Cloudflare\API\Adapter\Guzzle;
 use Laravel\VaporCli\Commands\Command;
+use Laravel\VaporCli\Helpers as VaporHelpers;
 use Cumulus\Cumulus\CloudflareEndpoints\UserApiToken;
 
 class CloudflareLoginCommand extends Command
 {
-    /**
-     * Configure the command options.
-     *
-     * @return void
-     */
-    protected function configure()
-    {
-        $this
-            ->setName('cloudflare:login')
-            ->setDescription('Authenticate with Cloudflare');
-    }
-
     /**
      * Execute the command.
      *
@@ -60,6 +48,18 @@ class CloudflareLoginCommand extends Command
             ]
         );
 
-        VaporHelpers::info('Authenticated successfully.'.PHP_EOL);
+        VaporHelpers::info('Authenticated successfully.' . PHP_EOL);
+    }
+
+    /**
+     * Configure the command options.
+     *
+     * @return void
+     */
+    protected function configure()
+    {
+        $this
+            ->setName('cloudflare:login')
+            ->setDescription('Authenticate with Cloudflare');
     }
 }

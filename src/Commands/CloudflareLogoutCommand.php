@@ -4,23 +4,11 @@ namespace Cumulus\Cumulus\Commands;
 
 use Exception;
 use Cumulus\Cumulus\Helpers;
-use Laravel\VaporCli\Helpers as VaporHelpers;
 use Laravel\VaporCli\Commands\Command;
+use Laravel\VaporCli\Helpers as VaporHelpers;
 
 class CloudflareLogoutCommand extends Command
 {
-    /**
-     * Configure the command options.
-     *
-     * @return void
-     */
-    protected function configure()
-    {
-        $this
-            ->setName('cloudflare:logout')
-            ->setDescription('Clear any saved authentication credentials for Cloudflare.');
-    }
-
     /**
      * Execute the command.
      *
@@ -35,6 +23,18 @@ class CloudflareLogoutCommand extends Command
             ]
         );
 
-        VaporHelpers::info('Cloudflare credentials cleared.'.PHP_EOL);
+        VaporHelpers::info('Cloudflare credentials cleared.' . PHP_EOL);
+    }
+
+    /**
+     * Configure the command options.
+     *
+     * @return void
+     */
+    protected function configure()
+    {
+        $this
+            ->setName('cloudflare:logout')
+            ->setDescription('Clear any saved authentication credentials for Cloudflare.');
     }
 }

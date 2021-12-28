@@ -13,6 +13,6 @@ class Config extends \Laravel\VaporCli\Config
      */
     protected static function path()
     {
-        return Helpers::home().'/.cumulus/config.json';
+        return Helpers::home() . '/.cumulus/config.json';
     }
 }
