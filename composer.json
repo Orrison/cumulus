@@ -1,5 +1,5 @@
 {
-    "name": "cumulus/cumulus",
+    "name": "orrison/cumulus",
     "license": "MIT",
     "autoload": {
         "psr-4": {
