@@ -1,6 +1,17 @@
 {
     "name": "orrison/cumulus",
+    "description": "Import DNS records from Laravel Vapor into Cloudflare",
+    "keywords": [
+        "laravel",
+        "vapor",
+        "cloudflare",
+        "dns"
+    ],
+    "homepage": "https://github.com/Orrison/cumulus",
     "license": "MIT",
+    "bin": [
+        "cumulus"
+    ],
     "autoload": {
         "psr-4": {
             "Cumulus\\Cumulus\\": "src/"
