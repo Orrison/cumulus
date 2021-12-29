@@ -1,7 +1,7 @@
 # Cumulus
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/orrison/cumulus.svg?style=flat-square)](https://packagist.org/packages/orrison/cumulus)
 [![Total Downloads](https://img.shields.io/packagist/dt/orrison/cumulus.svg?style=flat-square)](https://packagist.org/packages/orrison/cumulus)
+[![License](http://poser.pugx.org/orrison/cumulus/license)](https://packagist.org/packages/orrison/cumulus)
 
 Cumulus is a package to be used with the Laravel Vapor CLI. It provides a set of commands to import DNS records for your Vapor custom domain into Cloudflare.
 
