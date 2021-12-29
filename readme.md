@@ -7,7 +7,7 @@ Cumulus is a package to be used with the Laravel Vapor CLI. It provides a set of
 
 No more having to copy each manually which takes too long and is prone to errors. Cumulus will create any missing DNS records for you as well as update any incorrect or changed records.
 
-Keep in mind that in order for the import to work the domain must be a custom domain in your Laravel Vapor team as well as a zone in your Cloudflare account already. This package will take care of import the DNS records for you, not adding the domains.
+Keep in mind that in order for the import to work the domain must be a custom domain in your Laravel Vapor team as well as a zone in your Cloudflare account already. This package will take care of importing the DNS records for you, not adding the domains.
 
 ---
 
@@ -45,6 +45,6 @@ cumulus cloudflare:import [THE_DOMAIN_NAME]
 ```
 This will import any missing DNS records that Vapor specifies into the Cloudflare DNS zone. As well as update any incorrect or changed records.
 
-If you would like to see what changes would be made before actually making the changes, you can add `--dry-run` to the end of the command.
+If you would like to see what changes would be made before actually importing, you can add `--dry-run` to the end of the command.
 
 The import command will attempt to "proxy" each added/updated record if it can be proxied. If you would not like the added records proxied, you can add `--no-proxy` to the end of the command.
