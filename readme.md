@@ -27,11 +27,11 @@ The "Edit DNS Zone" template is perfect for this. You will just need set the "Zo
 
 Once you have your token you can run the following command to input your token. It is then stored for use in future commands.
 ```bash
-cumulus cloudlfare:login
+cumulus cloudflare:login
 ```
 If, for what ever reason, you would like to clear this token from local storage then you can run the following command.
 ```bash
-cumulus cloudlfare:logout
+cumulus cloudflare:logout
 ```
 
 ---
