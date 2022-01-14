@@ -9,6 +9,8 @@ No more having to copy each manually which takes too long and is prone to errors
 
 Keep in mind that in order for the import to work the domain must be a custom domain in your Laravel Vapor team as well as a zone in your Cloudflare account already. This package will take care of importing the DNS records for you, not adding the domains.
 
+You will also need to have [Laravel Vapor CLI](https://docs.vapor.build/1.0/introduction.html#installing-the-vapor-cli) installed and authenticated on your machine.
+
 ---
 
 ## Installation
@@ -48,3 +50,14 @@ This will import any missing DNS records that Vapor specifies into the Cloudflar
 If you would like to see what changes would be made before actually importing, you can add `--dry-run` to the end of the command.
 
 The import command will attempt to "proxy" each added/updated record if it can be proxied. If you would not like the added records proxied, you can add `--no-proxy` to the end of the command.
+
+### Info about DNS record generation and Subdomains
+
+Cumulus will work regardless of the environment you have assigned the custom domain to. It simply imports the correct DNS records for the domain provided. Laravel Vapor generates and stores the DNS records when a domain is assigned to a project environment and successfully deployed.
+
+When you use a subdomain for a project environment Laravel Vapor will automatically generate the correct DNS records and store them with the root domain. So in order to import the correct DNS records for the subdomain you will need to import the root domain.
+
+For example if you have a subdomain `sub.example.com`, you would run the following command to import the DNS records:
+```bash
+cumulus cloudflare:import example.com
+```
