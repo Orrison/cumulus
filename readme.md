@@ -43,7 +43,7 @@ Cumulus directly executes some commands via Laravel Vapor. So you will need to b
 
 Now that you have a valid Cloudflare API token and are logged in to a Vapor team that has access to the domain you are attempting to import, you can run the following command to import the DNS records for your domain.
 ```bash
-cumulus cloudflare:import [THE_DOMAIN_NAME]
+cumulus records:import [THE_DOMAIN_NAME]
 ```
 This will import any missing DNS records that Vapor specifies into the Cloudflare DNS zone. As well as update any incorrect or changed records.
 
