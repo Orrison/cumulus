@@ -59,5 +59,5 @@ When you use a subdomain for a project environment Laravel Vapor will automatica
 
 For example if you have a subdomain `sub.example.com`, you would run the following command to import the DNS records:
 ```bash
-cumulus cloudflare:import example.com
+cumulus records:import example.com
 ```
