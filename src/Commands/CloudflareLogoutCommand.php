@@ -5,7 +5,6 @@ namespace Cumulus\Cumulus\Commands;
 use Exception;
 use Cumulus\Cumulus\Helpers;
 use Laravel\VaporCli\Commands\Command;
-use Laravel\VaporCli\Helpers as VaporHelpers;
 
 class CloudflareLogoutCommand extends Command
 {
@@ -23,7 +22,7 @@ class CloudflareLogoutCommand extends Command
             ]
         );
 
-        VaporHelpers::info('Cloudflare credentials cleared.' . PHP_EOL);
+        Helpers::info('Cloudflare credentials cleared.' . PHP_EOL);
     }
 
     /**

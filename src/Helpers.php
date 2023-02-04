@@ -60,7 +60,7 @@ class Helpers extends VaporHelpers
         try {
             return $zone->getZoneId($zoneInput);
         } catch (Exception $e) {
-            VaporHelpers::abort('Unable to find a zone with that name / ID in Cloudflare.');
+            parent::abort('Unable to find a zone with that name / ID in Cloudflare.');
         }
     }
 

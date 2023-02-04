@@ -7,7 +7,6 @@ use Cumulus\Cumulus\Helpers;
 use Cloudflare\API\Auth\APIToken;
 use Cloudflare\API\Adapter\Guzzle;
 use Laravel\VaporCli\Commands\Command;
-use Laravel\VaporCli\Helpers as VaporHelpers;
 use Cumulus\Cumulus\CloudflareEndpoints\UserApiToken;
 
 class CloudflareLoginCommand extends Command
@@ -20,7 +19,7 @@ class CloudflareLoginCommand extends Command
      */
     public function handle()
     {
-        $apiToken = VaporHelpers::secret('API Token');
+        $apiToken = Helpers::secret('API Token');
 
         $key = new APIToken($apiToken);
         $adapter = new Guzzle($key);
@@ -35,7 +34,7 @@ class CloudflareLoginCommand extends Command
             }
         } catch (Exception $e) {
             if ($e->getMessage() === 'Invalid request headers') {
-                VaporHelpers::abort(
+                Helpers::abort(
                     'Invalid credentials'
                 );
             }
@@ -48,7 +47,7 @@ class CloudflareLoginCommand extends Command
             ]
         );
 
-        VaporHelpers::info('Authenticated successfully.' . PHP_EOL);
+        Helpers::info('Authenticated successfully.' . PHP_EOL);
     }
 
     /**
