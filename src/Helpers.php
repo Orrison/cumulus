@@ -19,7 +19,7 @@ class Helpers extends VaporHelpers
      */
     public static function ensureCloudFlareCredentialsAreAvailable()
     {
-        if (!static::config('apiToken')) {
+        if (empty(static::getCloudFlareApiToken())) {
             throw new Exception("Please authenticate using the 'cloudflare:login' command before proceeding.");
         }
     }
@@ -52,7 +52,7 @@ class Helpers extends VaporHelpers
      */
     public static function getCloudflareZoneId($zoneInput)
     {
-        $key = new APIToken(Config::get('apiToken'));
+        $key = new APIToken(static::getCloudFlareApiToken());
         $adapter = new Guzzle($key);
 
         $zone = new Zones($adapter);
@@ -69,9 +69,16 @@ class Helpers extends VaporHelpers
      */
     public static function getCloudflareDnsApi()
     {
-        $key = new APIToken(Config::get('apiToken'));
+        $key = new APIToken(static::getCloudFlareApiToken());
         $adapter = new Guzzle($key);
 
         return new DNS($adapter);
+    }
+
+    public static function getCloudFlareApiToken()
+    {
+        return $_ENV['CLOUDFLARE_API_TOKEN']
+            ?? env('CLOUDFLARE_API_TOKEN')
+            ?? Config::get('apiToken');
     }
 }
