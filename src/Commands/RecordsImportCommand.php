@@ -34,7 +34,7 @@ class RecordsImportCommand extends Command
         $this->proxy = !$this->option('no-proxy');
         $this->dryRun = $this->option('dry-run');
 
-//        VaporHelpers::ensure_api_token_is_available();
+        VaporHelpers::ensure_api_token_is_available();
         Helpers::ensureCloudFlareCredentialsAreAvailable();
 
         $vaporRecords = $this->getVaporRecords();
