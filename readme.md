@@ -36,6 +36,8 @@ If, for what ever reason, you would like to clear this token from local storage 
 cumulus cloudflare:logout
 ```
 
+Alternatively, if you wish to load your API token from your server environment, you can do so by declaring `CLOUDFLARE_API_TOKEN` as an environment variable. When this is defined it will always take priority over your Cumulus config stored in your user profile.
+
 ---
 
 ### Importing DNS Records

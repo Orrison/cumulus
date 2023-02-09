@@ -81,34 +81,34 @@ class RecordsImportCommand extends Command
 
         if ($this->dryRun) {
             if ($this->totalAddedRecords > 0) {
-                VaporHelpers::info("Records required to be added:");
+                Helpers::info("Records required to be added:");
 
                 $this->table(['Type', 'Name', 'Value'], $this->recordsToAdd);
             } else {
-                VaporHelpers::info("No records need added to Cloudflare. All records are already imported.");
+                Helpers::info("No records need added to Cloudflare. All records are already imported.");
             }
 
             if ($this->totalUpdatedRecords > 0) {
-                VaporHelpers::warn("Records required to be updated:");
+                Helpers::warn("Records required to be updated:");
 
                 $this->table(['Type', 'Name', 'Value'], $this->recordsToUpdate);
             } else {
-                VaporHelpers::info("No records need updated in Cloudflare. All records are already correct.");
+                Helpers::info("No records need updated in Cloudflare. All records are already correct.");
             }
 
             return;
         }
 
         if ($this->totalAddedRecords > 0) {
-            VaporHelpers::info("Added {$this->totalAddedRecords} records to Cloudflare.");
+            Helpers::info("Added {$this->totalAddedRecords} records to Cloudflare.");
         } else {
-            VaporHelpers::info("No records were added to Cloudflare. All records are already imported.");
+            Helpers::info("No records were added to Cloudflare. All records are already imported.");
         }
 
         if ($this->totalUpdatedRecords > 0) {
-            VaporHelpers::info("Updated {$this->totalUpdatedRecords} records in Cloudflare.");
+            Helpers::info("Updated {$this->totalUpdatedRecords} records in Cloudflare.");
         } else {
-            VaporHelpers::info("No records need updated in Cloudflare. All records are already correct.");
+            Helpers::info("No records need updated in Cloudflare. All records are already correct.");
         }
     }
 
@@ -119,7 +119,7 @@ class RecordsImportCommand extends Command
         }
 
         if (is_null($vaporZoneId)) {
-            VaporHelpers::abort('Unable to find a zone with that name / ID in Vapor.');
+            Helpers::abort('Unable to find a zone with that name / ID in Vapor.');
         }
 
         return collect($this->vapor->records($vaporZoneId))->map(function ($record) {
@@ -158,7 +158,7 @@ class RecordsImportCommand extends Command
                 $this->totalAddedRecords++;
                 Helpers::info("Added {$type} record {$name}");
             } catch (Exception $e) {
-                VaporHelpers::danger(
+                Helpers::danger(
                     "Unable to create {$type} record in Cloudflare with name {$name}. Response: {$e->getMessage()}"
                 );
             }
@@ -181,7 +181,7 @@ class RecordsImportCommand extends Command
             $this->totalUpdatedRecords++;
             Helpers::info("Updated {$record->type} record {$record->name}");
         } catch (Exception $e) {
-            VaporHelpers::danger(
+            Helpers::danger(
                 "Unable to update record in Cloudflare. Response: {$e->getMessage()}"
             );
         }
